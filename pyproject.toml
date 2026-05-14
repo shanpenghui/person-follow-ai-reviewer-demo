@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "person-follow-ai-reviewer-demo"
+version = "0.1.0"
+description = "Interview demo: AI-assisted PR review for a person-follow robotics module."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = []
+
+[project.scripts]
+ai-review = "ai_review_bot.cli:main"
+
+[tool.setuptools]
+packages = ["ai_review_bot"]
+

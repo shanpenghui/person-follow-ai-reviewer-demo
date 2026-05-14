@@ -1,0 +1,16 @@
+# mira2_person_follow Python dependencies (pip)
+# Usage:
+#   python3 -m pip install -r requirements.txt
+#
+# NOTE:
+# - ROS 2 deps (rclpy/std_msgs/sensor_msgs/geometry_msgs/tf2_ros/cv_bridge)
+#   should be installed via apt in ROS environment.
+
+numpy>=1.23,<2.0
+opencv-python>=4.8,<4.11
+ultralytics>=8.2,<9.0
+mediapipe>=0.10.14,<0.11
+pyttsx3>=2.90,<3.0
+
+# Optional (only if you use LangGraph-related workflow)
+langgraph>=0.2,<0.4

@@ -1,0 +1,266 @@
+speak_pyttsx3_node:
+  ros__parameters:
+    service_name: /speak
+    rate: 165
+    volume: 1.0
+    voice_id: sit/cmn
+    voice_name_contains: cmn
+
+gesture_detector_node:
+  ros__parameters:
+    image_topic: /cam_head/d435/color/image_raw
+    gesture_topic: /person_follow/gesture_id
+    process_hz: 8.0
+    max_hands: 1
+    min_detection_confidence: 0.6
+    min_tracking_confidence: 0.5
+    mirror_image: false
+    gesture_hold_frames: 4
+    enable_ok_as_gesture3: true
+    gesture_emit_cooldown_sec: 1.5
+    ok_thumb_index_ratio: 0.09
+    min_hand_scale: 0.08
+    debug_gesture_topic: /person_follow/gesture_debug
+
+follow_fsm_langgraph_node:
+  ros__parameters:
+    gesture_topic: /person_follow/gesture_id
+    follow_enabled_topic: /person_follow/follow_enabled
+    fsm_state_topic: /person_follow/fsm_state
+    gesture_start_value: 1
+    gesture_stop_value: 2
+    gesture_switch_value: 3
+    gesture_confirm_count: 1
+    event_cooldown_sec: 1.0
+    start_mode: IDLE
+    target_cycle_ids: [0, 72, 57, 56]
+    target_cycle_names_zh: ["人", "冰箱", "沙发", "椅子"]
+    target_class_id_topic: /person_follow/target_class_id
+    enable_tts_announce: true
+    speak_service: /speak
+    master_enable_topic: /person_follow/action_master_enabled
+    fsm_force_stop_topic: /person_follow/fsm_force_stop
+
+follow_action_server_node:
+  ros__parameters:
+    action_server_name: /person_follow/skill_behavior_tree
+    master_enable_topic: /person_follow/action_master_enabled
+    action_follow_enabled_topic: /person_follow/action_follow_enabled
+    follow_enabled_topic: /person_follow/follow_enabled
+    fsm_force_stop_topic: /person_follow/fsm_force_stop
+    fsm_state_topic: /person_follow/fsm_state
+    target_class_id_topic: /person_follow/target_class_id
+    feedback_hz: 5.0
+
+scene_servo_node:
+  ros__parameters:
+    template_path: ""
+    servo_state_topic: /scene_template/servo_state
+    follow_mode: person_yolo  # scene_template | person_yolo
+    # YOLO (only used when follow_mode=person_yolo)
+    yolo_model_path: 'models/yolov8s_fp16_512.engine'
+    yolo_device: '0'
+    yolo_imgsz: 512
+    yolo_conf_thres: 0.16
+    yolo_detect_class_id: 0  # COCO person=0
+    target_class_id_topic: /person_follow/target_class_id
+    yolo_use_half: true
+    image_topic: /cam_chest/d455/color/image_raw
+    depth_topic: /cam_chest/d455/aligned_depth_to_color/image_raw
+    camera_info_topic: /cam_chest/d455/color/camera_info
+    control_hz: 100.0
+    match_hz: 100.0
+    log_period_sec: 1.0
+    frame_timeout_sec: 0.75
+    scene_frame_sync_tolerance_sec: 0.08
+    publish_lost_state: true
+    head_fov_h_deg: 69.0
+    head_fov_v_deg: 42.0
+    detector: sift
+    max_keypoints: 1000
+    match_ratio_test: 0.85
+    ransac_reproj_th: 8.0
+    ransac_3d_inlier_th_m: 0.08
+    ransac_confidence: 0.995
+    ransac_max_iters: 2000
+    depth_min_m: 0.1
+    depth_max_m: 8.0
+    depth_patch_half: 4
+    min_3d_pairs: 6
+    min_pnp_pairs: 6
+    min_2d_pairs: 6
+    max_translation_m: 5.0
+    ema_alpha: 0.35
+    min_confidence_head: 0.15
+    min_confidence_base: 0.30
+    min_inlier_count_base: 6
+    multi_keyframe: true
+    base_ready_window: 5
+    base_ready_min_count: 2
+    # --- head control ---
+    joint_state_topic: /Torso/joint_states
+    torso_action_name: /Torso/torso_action_service
+    yaw_sign: 1.0
+    pitch_sign: 1.0
+    head_smoothing: 0.22
+    head_track_filter_alpha: 0.22
+    head_target_step_max_deg: 8.0
+    head_deadband_deg: 1.5
+    head_soft_zone_yaw_deg: 8.0
+    head_soft_zone_pitch_deg: 6.0
+    head_yaw_vel_max_deg_s: 40.0
+    head_pitch_vel_max_deg_s: 30.0
+    home_torso_height: 0.149
+    home_torso_yaw: 0.0
+    home_head_yaw: 0.0
+    home_head_pitch: 0.0
+    # --- chassis control ---
+    cmd_topic: /smooth_cmd_vel
+    use_twist_stamped: true
+    desired_distance_m: 1.0
+    object_desired_distance_m: 1.5
+    object_arrive_stable_frames: 5
+    k_dist: 0.75
+    k_yaw: 0.55
+    deadband_distance_m: 0.08
+    deadband_yaw_deg: 5.0
+    vx_min: -0.2
+    vx_max: 0.40
+    wz_max: 0.50
+    accl_vx: 0.45
+    accl_wz: 1.32
+    lost_decel_vx: 0.25
+    lost_decel_wz: 0.80
+    scene_arrive_forward_m: 0.08
+    scene_arrive_lateral_m: 0.12
+    scene_arrive_yaw_deg: 4.0
+    scene_arrive_stable_frames: 5
+    scene_lateral_yaw_gain: 0.35
+    scene_vx_min: -0.15
+    scene_vx_max: 0.10
+    scene_wz_max: 0.20
+    scene_accl_vx: 0.30
+    scene_accl_wz: 0.60
+    scene_cmd_alpha: 0.70
+    scene_min_vx_cmd: 0.02
+    scene_min_wz_cmd: 0.02
+    scene_pose_min_confidence: 0.35
+    scene_pose_min_inliers: 8
+    scene_pose_hold_sec: 0.8
+    shutdown_home_wait_sec: 2.5
+    # --- follow / coast ---
+    follow_enabled_topic: /person_follow/follow_enabled
+    action_follow_enabled_topic: /person_follow/action_follow_enabled
+    auto_enable_follow: true  # scene_template only; YOLO person uses gesture, YOLO objects use action
+    follow_enabled_republish_sec: 0.5
+    gesture_start: 1
+    gesture_stop: 2
+    # D435 gesture detection
+    d435_image_topic: /cam_head/d435/color/image_raw
+    gesture_process_hz: 8.0
+    gesture_hold_frames: 2
+    gesture_cooldown_sec: 1.2
+    base_coast_sec: 1.5
+    # TF2
+    use_tf2: true
+    camera_frame: 'camera_torso_optical'
+    base_frame: 'base_link'
+    tf_timeout_sec: 0.1
+
+person_follow_node:
+  ros__parameters:
+    torso_action_name: /Torso/torso_action_service
+    joint_state_topic: /Torso/joint_states
+    image_topic: /cam_head/d435/color/image_raw
+    depth_topic: /cam_head/d435/aligned_depth_to_color/image_raw
+    camera_info_topic: /cam_head/d435/color/camera_info
+    device: "0"
+    imgsz: 512
+    conf_thres: 0.16
+    detect_max_det: 8
+    use_half: true
+    detect_class_id: 0
+    image_width: 640.0
+    image_height: 480.0
+    fov_h_deg: 69.0
+    fov_v_deg: 42.0
+    control_hz: 12.0
+    deadband_deg: 1.0
+    smoothing: 0.35
+    bbox_target_x_ratio: 0.5
+    bbox_target_y_ratio: 0.30
+    vel_min: 0.12
+    vel_max: 0.50
+    vel_ramp_deg: 20.0
+    yaw_sign: 1.0
+    pitch_sign: 1.0
+    lost_timeout_sec: 1.0
+    lost_behavior: home
+    enable_target_lock: true
+    target_lock_timeout_sec: 1.2
+    target_lock_iou_weight: 0.55
+    target_lock_center_weight: 0.30
+    target_lock_area_weight: 0.15
+    target_lock_min_score: 0.20
+    target_lock_hold_on_low_score: false
+    target_lock_center_gate: 0.45
+    target_lock_area_ratio_min: 0.45
+    target_lock_area_ratio_max: 2.20
+    yaw_min_deg: -90.0
+    yaw_max_deg: 90.0
+    pitch_min_deg: -34.0
+    pitch_max_deg: 19.0
+    home_before_start: true
+    home_torso_height: 0.149
+    home_torso_yaw: 0.0
+    home_head_pitch: 0.0
+    home_head_yaw: 0.0
+    home_max_velocity: 0.15
+    home_settle_sec: 1.5
+    log_period_sec: 1.0
+    publish_target_interface: true
+    d435_bbox_topic: /person_follow/d435_bbox
+    enable_bbox_meta_publish: true
+    target_topic: /person_follow/target
+    target_valid_topic: /person_follow/target_valid
+    target_frame: base_link
+    camera_optical_frame: camera_head_optical
+    depth_roi_half: 11
+    depth_min_m: 0.2
+    depth_max_m: 5.0
+    depth_min_valid_count: 3
+    depth_hold_sec: 0.4
+    enable_d455_target_interface: true
+    d455_image_topic: /cam_chest/d455/color/image_raw
+    d455_depth_topic: /cam_chest/d455/aligned_depth_to_color/image_raw
+    d455_camera_info_topic: /cam_chest/d455/color/camera_info
+    d455_target_topic: /person_follow/target_d455
+    d455_target_valid_topic: /person_follow/target_valid_d455
+    d455_bbox_topic: /person_follow/d455_bbox
+    d455_camera_optical_frame: camera_torso_link
+    d455_detect_hz: 4.0
+    d455_depth_roi_half: 11
+    d455_depth_hold_sec: 0.4
+    d455_depth_strategy_mode: adaptive
+    d455_depth_roi_shrink_x: 0.20
+    d455_depth_roi_shrink_top: 0.25
+    d455_depth_roi_shrink_bottom: 0.25
+    d455_depth_valid_ratio_min: 0.30
+    d455_depth_valid_count_min: 80
+    d455_depth_ref_quantile: 0.50
+    d455_depth_near_quantile: 0.45
+    d455_depth_mid_quantile: 0.35
+    d455_depth_far_quantile: 0.30
+    d455_depth_near_enter_m: 1.00
+    d455_depth_near_exit_m: 1.15
+    d455_depth_far_enter_m: 2.80
+    d455_depth_far_exit_m: 2.50
+    d455_depth_enter_frames: 3
+    d455_depth_exit_frames: 3
+    d455_depth_zone_hold_sec: 0.5
+    d455_depth_dist_ema_alpha: 0.25
+    d455_depth_output_ema_alpha: 0.35
+    d455_depth_max_jump_m: 0.35
+    fallback_without_tf: true
+    follow_enabled_topic: /person_follow/follow_enabled
+    start_follow_enabled: false

@@ -1,0 +1,43 @@
+diff --git a/scene_servo/person_yolo_servo_node.py b/scene_servo/person_yolo_servo_node.py
+index 1111111..2222222 100644
+--- a/scene_servo/person_yolo_servo_node.py
++++ b/scene_servo/person_yolo_servo_node.py
+@@ -1840,22 +1840,20 @@ class SceneServoNode(Node):
+     def _handle_lost(self, now: float, reason: str) -> None:
+         self.tracking = False
+         # Clear cached head target so stale data doesn't linger
+         self.scene_completed = False
+         self._cached_target_yaw = None
+         self._cached_target_pitch = None
+         self._stop_head()
+         self.scene_base_forward_m = None
+         self.scene_base_lateral_m = None
+         self.scene_base_yaw_deg = None
+         if self.follow_mode == 'scene_template':
+             self.cmd_vx = 0.0
+             self.cmd_wz = 0.0
+             self.scene_state = 'LOST_STOP'
+-            self._publish_cmd(0.0, 0.0)
++            # Keep last chassis command for a short grace period to avoid jitter.
++            # TODO: stop command will be added after field tuning.
++            self.get_logger().info('target lost, keep previous chassis command')
+ 
+     def _publish_cmd(self, vx: float, wz: float) -> None:
+         msg = Twist()
+         msg.linear.x = float(vx)
+         msg.angular.z = float(wz)
+         self.cmd_pub.publish(msg)
+
+diff --git a/person_follow/follow_action_server_node.py b/person_follow/follow_action_server_node.py
+index 3333333..4444444 100644
+--- a/person_follow/follow_action_server_node.py
++++ b/person_follow/follow_action_server_node.py
+@@ -155,14 +155,10 @@ class PersonFollowActionServer(Node):
+         if not target:
+             return cmd, None
+         try:
+             return cmd, int(target)
+         except ValueError:
+-            return cmd, self.TARGET_NAME_TO_ID.get(target)
++            # Demo regression: numeric target only; named aliases will fail.
++            return cmd, int(target)
